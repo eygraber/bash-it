@@ -146,7 +146,8 @@ _bash-it-plugins ()
     _bash-it-describe "plugins" "a" "plugin" "Plugin"
 }
 
-_bash-it_update() {
+_bash-it_update()
+{
   _about 'updates Bash-it'
   _group 'lib'
 
@@ -279,6 +280,40 @@ _bash-it-reload() {
   esac
 
   popd &> /dev/null || return
+}
+
+
+_bash-it_upstream()
+{
+  _about 'updates Bash-it from upstream'
+  _group 'lib'
+
+  cd "${BASH_IT}"
+  git fetch &> /dev/null
+  git fetch upstream &> /dev/null
+  local status="$(git rev-list master..upstream/master 2> /dev/null)"
+  if [[ -n "${status}" ]]; then
+    git co master &> /dev/null
+    git pull --rebase upstream master &> /dev/null
+    if [[ $? -eq 0 ]]; then
+      git push origin master &> /dev/null
+      git co eygraber &> /dev/null
+      git rebase master &> /dev/null
+      if [[ $? -eq 0 ]]; then
+        git push origin eygraber -f &> /dev/null
+        echo "Bash-it successfully updated, enjoy!"
+	reload
+      else
+        echo "Error rebasing eygraber onto new changes from upstream. Please fix manually and push eygraber to origin when done."
+      fi
+    else
+      echo "Error updating Bash-it, please, check if your Bash-it installation folder (${BASH_IT}) is clean."
+    fi
+  else
+    echo "Bash-it is up to date, nothing to do!"
+  fi
+  git co eygraber &> /dev/null
+  cd - &> /dev/null
 }
 
 _bash-it-describe ()
